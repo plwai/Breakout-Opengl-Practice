@@ -2,4 +2,4 @@
 #cmakedefine Breakout_VERSION_MAJOR @Breakout_VERSION_MAJOR@
 #cmakedefine Breakout_VERSION_MINOR @Breakout_VERSION_MINOR@
 
-#cmakedefine SOURCE_PATH "@SOURCE_PATH@"
+#cmakedefine ROOT_PATH "@ROOT_PATH@"
