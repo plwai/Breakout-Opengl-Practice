@@ -2,6 +2,8 @@
 #include <GLFW\glfw3.h>
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "breakout\gameSetting.h"
 #include "breakout\resourceManager.h"
@@ -55,7 +57,7 @@ int main(int argc, char *argv[]) {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		Breakout.render();
-
+		
 		glfwSwapBuffers(window);
 	}
 

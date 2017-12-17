@@ -47,6 +47,11 @@ void Game::update(GLfloat dt) {
 	ball->move(dt, this->width);
 
 	this->doCollisions();
+
+	if (ball->position.y >= this->height) {
+		this->resetLevel();
+		this->resetPlayer();
+	}
 }
 
 
@@ -101,17 +106,78 @@ void Game::render() {
 void Game::doCollisions() {
 	for (GameObject &box : this->levels[this->level].bricks) {
 		if (!box.destroyed) {
-			if (checkCollision(*ball, box)) {
+			Collision collision = this->checkCollision(*ball, box);
+
+			if (std::get<0>(collision)) {
 				if (!box.isSolid) {
 					box.destroyed = GL_TRUE;
 				}
+
+				Direction dir = std::get<1>(collision);
+				glm::vec2 diffVector = std::get<2>(collision);
+
+				if (dir == LEFT || dir == RIGHT) {
+					ball->velocity.x = -ball->velocity.x;
+
+					GLfloat penetration = ball->radius - std::abs(diffVector.x);
+					if (dir == LEFT) {
+						ball->position.x += penetration;
+					}
+					else {
+						ball->position.x -= penetration;
+					}
+				}
+				else {
+					ball->velocity.y = -ball->velocity.y;
+
+					GLfloat penetration = ball->radius - std::abs(diffVector.y);
+					if (dir == UP) {
+						ball->position.y -= penetration;
+					}
+					else {
+						ball->position.y += penetration;
+					}
+				}
 			}
 		}
+	}
+
+	Collision result = checkCollision(*ball, *player);
+
+	if (!ball->stuck && std::get<0>(result)) {
+		GLfloat centerBoard = player->position.x + player->size.x / 2;
+		GLfloat distance = (ball->position.x + ball->radius) - centerBoard;
+		GLfloat percentage = distance / (player->size.x / 2);
+
+		GLfloat strength = 2.0f;
+		glm::vec2 oldVelocity = ball->velocity;
+		ball->velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
+		ball->velocity.y = -1 * std::abs(ball->velocity.y);
+		ball->velocity = glm::normalize(ball->velocity) * glm::length(oldVelocity);
 	}
 }
 
 void Game::setLevel(GLuint levelNumber) {
 	this->level = levelNumber - 1;
+}
+
+void Game::resetLevel()
+{
+	if (this->level == 0)
+		this->levels[0].load((this->path + "/src/levels/level_1.lvl").c_str(), this->width, this->height * 0.5f);
+	else if (this->level == 1)
+		this->levels[1].load((this->path + "/src/levels/level_2.lvl").c_str(), this->width, this->height * 0.5f);
+	else if (this->level == 2)
+		this->levels[2].load((this->path + "/src/levels/level_3.lvl").c_str(), this->width, this->height * 0.5f);
+	else if (this->level == 3)
+		this->levels[3].load((this->path + "/src/levels/level_4.lvl").c_str(), this->width, this->height * 0.5f);
+}
+
+void Game::resetPlayer()
+{
+	player->size = PLAYER_SIZE;
+	player->position = glm::vec2(this->width / 2 - PLAYER_SIZE.x / 2, this->height - PLAYER_SIZE.y);
+	ball->reset(player->position + glm::vec2(PLAYER_SIZE.x / 2 - BALL_RADIUS, -(BALL_RADIUS * 2)), INITIAL_BALL_VELOCITY);
 }
 
 GLboolean Game::checkCollision(GameObject &firstObj, GameObject &secondObj) {
@@ -124,7 +190,7 @@ GLboolean Game::checkCollision(GameObject &firstObj, GameObject &secondObj) {
 	return collisionX && collisionY;
 }
 
-GLboolean Game::checkCollision(BallObject &firstObj, GameObject &secondObj) {
+Collision Game::checkCollision(BallObject &firstObj, GameObject &secondObj) {
 	glm::vec2 center(firstObj.position + firstObj.radius);
 	glm::vec2 aabbHalfExtents(secondObj.size.x / 2, secondObj.size.y / 2);
 	glm::vec2 aabbCenter(
@@ -138,5 +204,32 @@ GLboolean Game::checkCollision(BallObject &firstObj, GameObject &secondObj) {
 
 	difference = closest - center;
 
-	return glm::length(difference) < firstObj.radius;
+	if (glm::length(difference) < firstObj.radius) {
+		return Collision(GL_TRUE, vectorDirection(difference), difference);
+	}
+	else {
+		return Collision(GL_FALSE, UP, glm::vec2(0, 0));
+	}
+}
+
+Direction Game::vectorDirection(glm::vec2 target) {
+	glm::vec2 compass[] = {
+		glm::vec2(0.0f, 1.0f),
+		glm::vec2(1.0f, 0.0f),
+		glm::vec2(0.0f, -1.0f),
+		glm::vec2(-1.0f, 0.0f),
+	};
+
+	GLfloat max = 0.0f;
+	GLuint bestMatch = -1;
+	for (GLuint i = 0; i < 4; i++) {
+		GLfloat dotProduct = glm::dot(glm::normalize(target), compass[i]);
+
+		if (dotProduct > max) {
+			max = dotProduct;
+			bestMatch = i;
+		}
+	}
+
+	return (Direction)bestMatch;
 }

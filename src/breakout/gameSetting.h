@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
+#include <tuple>
 
 #include <BreakoutConfig.h>
 
@@ -18,6 +19,15 @@ enum GameState {
 	GAME_MENU,
 	GAME_WIN,
 };
+
+enum Direction {
+	UP,
+	RIGHT,
+	DOWN,
+	LEFT,
+};
+
+typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
 
 const glm::vec2 PLAYER_SIZE(100, 20);
 const GLfloat PLAYER_VELOCITY(500.0f);
@@ -40,6 +50,8 @@ class Game {
 		void render();
 		void doCollisions();
 		void setLevel(GLuint levelNumber);
+		void resetLevel();
+		void resetPlayer();
 
 	private: 
 		SpriteRenderer *Renderer;
@@ -50,7 +62,8 @@ class Game {
 		std::string path;
 
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
-		GLboolean checkCollision(BallObject &firstObj, GameObject &secondObj);
+		Collision checkCollision(BallObject &firstObj, GameObject &secondObj);
+		Direction vectorDirection(glm::vec2 target);
 };
 
 #endif // !GAME_H
