@@ -50,6 +50,7 @@ class Game {
 		std::string path;
 
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
+		GLboolean checkCollision(BallObject &firstObj, GameObject &secondObj);
 };
 
 #endif // !GAME_H
