@@ -38,6 +38,8 @@ class Game {
 		void processInput(GLfloat dt);
 		void update(GLfloat dt);
 		void render();
+		void doCollisions();
+		void setLevel(GLuint levelNumber);
 
 	private: 
 		SpriteRenderer *Renderer;
@@ -46,6 +48,8 @@ class Game {
 		GameObject *player;
 		BallObject *ball;
 		std::string path;
+
+		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
 };
 
 #endif // !GAME_H

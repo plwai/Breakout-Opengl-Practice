@@ -34,7 +34,7 @@ void Game::init() {
 	this->levels.push_back(two);
 	this->levels.push_back(three);
 	this->levels.push_back(four);
-	this->level = 1;
+	this->setLevel(1);
 
 	glm::vec2 playerPos = glm::vec2(this->width / 2 - PLAYER_SIZE.x / 2, this->height - PLAYER_SIZE.y);
 	player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::getTexture("paddle"));
@@ -45,6 +45,8 @@ void Game::init() {
 
 void Game::update(GLfloat dt) {
 	ball->move(dt, this->width);
+
+	this->doCollisions();
 }
 
 
@@ -53,17 +55,19 @@ void Game::processInput(GLfloat dt) {
 		GLfloat velocity = PLAYER_VELOCITY * dt;
 
 		if (this->keys[GLFW_KEY_A]) {
-			if (player->position.x > 0) {
+			if (player->position.x - velocity >= 0) {
 				player->position.x -= velocity;
 				if (ball->stuck)
 					ball->position.x -= velocity;
 			}
 			else {
 				player->position.x = 0;
+				if (ball->stuck)
+					ball->position.x = PLAYER_SIZE.x / 2 - BALL_RADIUS;
 			}
 		}
 		if (this->keys[GLFW_KEY_D]) {
-			if (player->position.x < this->width - player->size.x)
+			if (player->position.x + velocity <= this->width - player->size.x)
 			{
 				player->position.x += velocity;
 				if (ball->stuck)
@@ -71,6 +75,8 @@ void Game::processInput(GLfloat dt) {
 			}
 			else {
 				player->position.x = this->width - player->size.x;
+				if (ball->stuck)
+					ball->position.x = this->width - player->size.x + (PLAYER_SIZE.x / 2 - BALL_RADIUS);
 			}
 		}
 		if (this->keys[GLFW_KEY_SPACE]) {
@@ -85,9 +91,35 @@ void Game::render() {
 				glm::vec2(0, 0), glm::vec2(this->width, this->height), 0.0f
 			);
 
-		this->levels[this->level - 1].draw(*Renderer);
+		this->levels[this->level].draw(*Renderer);
 
 		player->Draw(*Renderer);
 		ball->Draw(*Renderer);
 	}
+}
+
+void Game::doCollisions() {
+	for (GameObject &box : this->levels[this->level].bricks) {
+		if (!box.destroyed) {
+			if (checkCollision(*ball, box)) {
+				if (!box.isSolid) {
+					box.destroyed = GL_TRUE;
+				}
+			}
+		}
+	}
+}
+
+void Game::setLevel(GLuint levelNumber) {
+	this->level = levelNumber - 1;
+}
+
+GLboolean Game::checkCollision(GameObject &firstObj, GameObject &secondObj) {
+	bool collisionX = firstObj.position.x + firstObj.size.x >= secondObj.position.x &&
+		secondObj.position.x + secondObj.size.x >= firstObj.position.x;
+
+	bool collisionY = firstObj.position.y + firstObj.size.y >= secondObj.position.y &&
+		secondObj.position.y + secondObj.size.y >= firstObj.position.y;
+
+	return collisionX && collisionY;
 }
