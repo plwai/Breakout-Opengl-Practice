@@ -35,6 +35,7 @@ set ( source_files
 	${BREAKOUT_SOURCE_PATH}/spriteRenderer.cpp
 	${BREAKOUT_SOURCE_PATH}/gameObject.cpp
 	${BREAKOUT_SOURCE_PATH}/gameLevel.cpp
+	${BREAKOUT_SOURCE_PATH}/ballObject.cpp
 )
 
 set ( header_files
@@ -44,7 +45,7 @@ set ( header_files
 	${BREAKOUT_SOURCE_PATH}/resourceManager.h
 	${BREAKOUT_SOURCE_PATH}/spriteRenderer.h
 	${BREAKOUT_SOURCE_PATH}/gameObject.h
-	${BREAKOUT_SOURCE_PATH}/gameLevel.h
+	${BREAKOUT_SOURCE_PATH}/ballObject.h
 )
 
 set ( module_source_files
