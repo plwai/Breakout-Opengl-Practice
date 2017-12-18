@@ -43,7 +43,9 @@ int main(int argc, char *argv[]) {
 	GLfloat lastFrame = 0.0f;
 
 	Breakout.state = GAME_ACTIVE;
-	
+
+	glfwSwapInterval(1);
+
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
 
