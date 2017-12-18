@@ -4,6 +4,7 @@ const glm::vec2 PLAYER_SIZE(100, 20);
 const GLfloat PLAYER_VELOCITY(500.0f);
 const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 const GLfloat BALL_RADIUS = 12.5f;
+GLfloat shakeTime = 0.0f;
 
 Game::Game(GLuint width, GLuint height)
 	: state(GAME_ACTIVE), keys(), width(width), height(height) 
@@ -18,6 +19,7 @@ Game::~Game() {
 void Game::init() {
 	ResourceManager::loadShader((this->path + "/src/shader/sprite.vs").c_str(), (this->path + "/src/shader/sprite.frag").c_str(), nullptr, "sprite");
 	ResourceManager::loadShader((this->path + "/src/shader/particle.vs").c_str(), (this->path + "/src/shader/particle.frag").c_str(), nullptr, "particle");
+	ResourceManager::loadShader((this->path + "/src/shader/postProcess.vs").c_str(), (this->path + "/src/shader/postProcess.frag").c_str(), nullptr, "effects");
 
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(this->width), static_cast<GLfloat>(this->height), 0.0f, -1.0f, 1.0f);
 	ResourceManager::getShader("sprite").use().setInteger("image", 0);
@@ -55,6 +57,8 @@ void Game::init() {
 		ResourceManager::getTexture("particle"),
 		500
 	);
+
+	effects = new PostProcessor(ResourceManager::getShader("effects"), width, height);
 }
 
 void Game::update(GLfloat dt) {
@@ -66,6 +70,12 @@ void Game::update(GLfloat dt) {
 	if (ball->position.y >= this->height) {
 		this->resetLevel();
 		this->resetPlayer();
+	}
+
+	if (shakeTime > 0.0f) {
+		shakeTime -= dt;
+		if (shakeTime <= 0.0f)
+			effects->shake = false;
 	}
 }
 
@@ -107,6 +117,7 @@ void Game::processInput(GLfloat dt) {
 
 void Game::render() {
 	if (this->state == GAME_ACTIVE) {
+		effects->beginRender();
 		Renderer->DrawSprite(ResourceManager::getTexture("background"),
 				glm::vec2(0, 0), glm::vec2(this->width, this->height), 0.0f
 			);
@@ -116,6 +127,8 @@ void Game::render() {
 		player->draw(*Renderer);		
 		ball->draw(*Renderer);
 		particles->draw();
+		effects->endRender();
+		effects->render(glfwGetTime());
 	}
 }
 
@@ -127,6 +140,10 @@ void Game::doCollisions() {
 			if (std::get<0>(collision)) {
 				if (!box.isSolid) {
 					box.destroyed = GL_TRUE;
+				}
+				else {
+					shakeTime = 0.05f;
+					effects->shake = true;
 				}
 
 				Direction dir = std::get<1>(collision);

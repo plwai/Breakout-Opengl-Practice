@@ -14,6 +14,7 @@
 #include "gameLevel.h"
 #include "ballObject.h"
 #include "particleGenerator.h"
+#include "postProcessor.h"
 
 enum GameState {
 	GAME_ACTIVE,
@@ -56,6 +57,7 @@ class Game {
 		GameObject *player;
 		BallObject *ball;
 		ParticleGenerator *particles;
+		PostProcessor *effects;
 		std::string path;
 
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
