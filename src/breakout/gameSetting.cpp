@@ -1,5 +1,10 @@
 #include "gameSetting.h"
 
+const glm::vec2 PLAYER_SIZE(100, 20);
+const GLfloat PLAYER_VELOCITY(500.0f);
+const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
+const GLfloat BALL_RADIUS = 12.5f;
+
 Game::Game(GLuint width, GLuint height)
 	: state(GAME_ACTIVE), keys(), width(width), height(height) 
 {
@@ -12,10 +17,12 @@ Game::~Game() {
 
 void Game::init() {
 	ResourceManager::loadShader((this->path + "/src/shader/sprite.vs").c_str(), (this->path + "/src/shader/sprite.frag").c_str(), nullptr, "sprite");
+	ResourceManager::loadShader((this->path + "/src/shader/particle.vs").c_str(), (this->path + "/src/shader/particle.frag").c_str(), nullptr, "particle");
 
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(this->width), static_cast<GLfloat>(this->height), 0.0f, -1.0f, 1.0f);
 	ResourceManager::getShader("sprite").use().setInteger("image", 0);
 	ResourceManager::getShader("sprite").setMatrix4("projection", projection);
+	ResourceManager::getShader("particle").use().setMatrix4("projection", projection);
 
 	Renderer = new SpriteRenderer(ResourceManager::getShader("sprite"));
 
@@ -24,6 +31,7 @@ void Game::init() {
 	ResourceManager::loadTexture((this->path + "/assets/texture/tennisball512.png").c_str(), GL_TRUE, "face");
 	ResourceManager::loadTexture((this->path + "/assets/texture/block.png").c_str(), GL_FALSE, "block");
 	ResourceManager::loadTexture((this->path + "/assets/texture/block_solid.png").c_str(), GL_FALSE, "block_solid");
+	ResourceManager::loadTexture((this->path + "/assets/texture/particle.png").c_str(), GL_TRUE, "particle");
 
 	GameLevel one; one.load((this->path + "/src/levels/level_1.lvl").c_str(), this->width, this->height * 0.5);
 	GameLevel two; two.load((this->path + "/src/levels/level_2.lvl").c_str(), this->width, this->height * 0.5);
@@ -41,12 +49,19 @@ void Game::init() {
 
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2 - BALL_RADIUS, -BALL_RADIUS * 2);
 	ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::getTexture("face"));
+
+	particles = new ParticleGenerator(
+		ResourceManager::getShader("particle"),
+		ResourceManager::getTexture("particle"),
+		500
+	);
 }
 
 void Game::update(GLfloat dt) {
 	ball->move(dt, this->width);
 
 	this->doCollisions();
+	particles->update(dt, *ball, 2, glm::vec2(ball->radius / 2));
 
 	if (ball->position.y >= this->height) {
 		this->resetLevel();
@@ -98,8 +113,9 @@ void Game::render() {
 
 		this->levels[this->level].draw(*Renderer);
 
-		player->Draw(*Renderer);
-		ball->Draw(*Renderer);
+		player->draw(*Renderer);		
+		ball->draw(*Renderer);
+		particles->draw();
 	}
 }
 

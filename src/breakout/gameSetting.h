@@ -13,6 +13,7 @@
 #include "resourceManager.h"
 #include "gameLevel.h"
 #include "ballObject.h"
+#include "particleGenerator.h"
 
 enum GameState {
 	GAME_ACTIVE,
@@ -28,11 +29,6 @@ enum Direction {
 };
 
 typedef std::tuple<GLboolean, Direction, glm::vec2> Collision;
-
-const glm::vec2 PLAYER_SIZE(100, 20);
-const GLfloat PLAYER_VELOCITY(500.0f);
-const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
-const GLfloat BALL_RADIUS = 12.5f;
 
 class Game {
 	public:
@@ -59,6 +55,7 @@ class Game {
 		GLuint level;
 		GameObject *player;
 		BallObject *ball;
+		ParticleGenerator *particles;
 		std::string path;
 
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);

@@ -32,7 +32,7 @@ void GameLevel::load(const GLchar *file, GLuint levelWidth, GLuint levelHeight) 
 void GameLevel::draw(SpriteRenderer &renderer) {
 	for (GameObject &tile : this->bricks) {
 		if (!tile.destroyed) {
-			tile.Draw(renderer);
+			tile.draw(renderer);
 		}
 	}
 }

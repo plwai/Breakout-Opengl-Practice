@@ -6,6 +6,6 @@ GameObject::GameObject()
 GameObject::GameObject(glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec3 color, glm::vec2 velocity)
 	: position(pos), size(size), velocity(velocity), color(color), rotation(0.0f), sprite(sprite), isSolid(false), destroyed(false) {}
 
-void GameObject::Draw(SpriteRenderer &renderer) {
+void GameObject::draw(SpriteRenderer &renderer) {
 	renderer.DrawSprite(this->sprite, this->position, this->size, this->rotation, this->color);
 }

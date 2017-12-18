@@ -36,6 +36,7 @@ set ( source_files
 	${BREAKOUT_SOURCE_PATH}/gameObject.cpp
 	${BREAKOUT_SOURCE_PATH}/gameLevel.cpp
 	${BREAKOUT_SOURCE_PATH}/ballObject.cpp
+	${BREAKOUT_SOURCE_PATH}/particleGenerator.cpp
 )
 
 set ( header_files
@@ -46,6 +47,7 @@ set ( header_files
 	${BREAKOUT_SOURCE_PATH}/spriteRenderer.h
 	${BREAKOUT_SOURCE_PATH}/gameObject.h
 	${BREAKOUT_SOURCE_PATH}/ballObject.h
+	${BREAKOUT_SOURCE_PATH}/particleGenerator.h
 )
 
 set ( module_source_files
@@ -54,8 +56,10 @@ set ( module_source_files
 
 set ( shader_files
 	${SHADER_PATH}/sprite.vs
+	${SHADER_PATH}/particle.vs
 
 	${SHADER_PATH}/sprite.frag
+	${SHADER_PATH}/particle.frag
 )
 
 set ( level_files
