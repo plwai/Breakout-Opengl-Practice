@@ -43,12 +43,23 @@ int main(int argc, char *argv[]) {
 	GLfloat lastFrame = 0.0f;
 
 	Breakout.state = GAME_ACTIVE;
+	
+	double lastTime = glfwGetTime();
+	int nbFrames = 0;
 
 	while (!glfwWindowShouldClose(window)) {
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		glfwPollEvents();
+
+		double currentTime = glfwGetTime();
+		nbFrames++;
+		if (currentTime - lastTime >= 1.0){
+			printf("%f fps\n", double(nbFrames));
+			nbFrames = 0;
+			lastTime += 1.0;
+		}
 
 		Breakout.processInput(deltaTime);
 
@@ -59,6 +70,7 @@ int main(int argc, char *argv[]) {
 		Breakout.render();
 		
 		glfwSwapBuffers(window);
+		
 	}
 
 	ResourceManager::clear();
