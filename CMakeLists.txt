@@ -50,6 +50,7 @@ set ( header_files
 	${BREAKOUT_SOURCE_PATH}/ballObject.h
 	${BREAKOUT_SOURCE_PATH}/particleGenerator.h
 	${BREAKOUT_SOURCE_PATH}/postProcessor.h
+	${BREAKOUT_SOURCE_PATH}/powerUp.h
 )
 
 set ( module_source_files

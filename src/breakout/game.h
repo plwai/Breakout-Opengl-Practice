@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
 #include <tuple>
+#include <algorithm>
 
 #include <BreakoutConfig.h>
 
@@ -15,6 +16,7 @@
 #include "ballObject.h"
 #include "particleGenerator.h"
 #include "postProcessor.h"
+#include "powerUp.h"
 
 enum GameState {
 	GAME_ACTIVE,
@@ -37,6 +39,7 @@ class Game {
 		GameState	state;
 		GLboolean	keys[1024];
 		GLuint		width, height;
+		std::vector<PowerUp> powerUps;
 		
 		Game(GLuint width, GLuint height);
 		~Game();
@@ -49,6 +52,8 @@ class Game {
 		void setLevel(GLuint levelNumber);
 		void resetLevel();
 		void resetPlayer();
+		void spawnPowerUps(GameObject &block);
+		void updatePowerUps(GLfloat dt);
 
 	private: 
 		SpriteRenderer *Renderer;
@@ -63,6 +68,7 @@ class Game {
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
 		Collision checkCollision(BallObject &firstObj, GameObject &secondObj);
 		Direction vectorDirection(glm::vec2 target);
+		void activatePowerUp(PowerUp &powerUp);
 };
 
 #endif // !GAME_H

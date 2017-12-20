@@ -11,7 +11,7 @@ PostProcessor::PostProcessor(Shader shader, GLuint width, GLuint height)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, this->MSFBO);
 	glBindRenderbuffer(GL_RENDERBUFFER, this->RBO);
-	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGB, width, height);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGB, this->width, this->height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->RBO);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -40,19 +40,17 @@ PostProcessor::PostProcessor(Shader shader, GLuint width, GLuint height)
 			{ 0.0f, -offset },  // bottom-center
 			{ offset, -offset }   // bottom-right    
 	};
-	glUniform2fv(glGetUniformLocation(this->postProcessorShader.ID, "offset"), 9, (GLfloat*)offsets);
+	glUniform2fv(glGetUniformLocation(this->postProcessorShader.ID, "offsets"), 9, (GLfloat*)offsets);
 
-	GLint edge_kernel[9] = {
+	GLfloat edge_kernel[9] = {
 		-1, -1, -1,
-		-1,  8, -1,
+		-1, 8, -1,
 		-1, -1, -1,
 	};
-	glUniform1iv(glGetUniformLocation(this->postProcessorShader.ID, "edge_kernel"), 9, edge_kernel);
+	glUniform1fv(glGetUniformLocation(this->postProcessorShader.ID, "edge_kernel"), 9, edge_kernel);
 
 	GLfloat blur_kernel[9] = {
-		1.0 / 16, 2.0 / 16, 1.0 / 16,
-		2.0 / 16, 4.0 / 16, 2.0 / 16,
-		1.0 / 16, 2.0 / 16, 1.0 / 16,
+		1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0, 1.0 / 9.0,
 	};
 	glUniform1fv(glGetUniformLocation(this->postProcessorShader.ID, "blur_kernel"), 9, blur_kernel);
 }
@@ -68,6 +66,8 @@ void PostProcessor::endRender() {
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->FBO);
 	glBlitFramebuffer(0, 0, this->width, this->height, 0, 0, this->width, this->height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void PostProcessor::render(GLfloat time) {
@@ -78,8 +78,8 @@ void PostProcessor::render(GLfloat time) {
 	this->postProcessorShader.setInteger("shake", this->shake);
 
 	glActiveTexture(GL_TEXTURE0);
-	this->texture.bind();
 	glBindVertexArray(this->VAO);
+	this->texture.bind();
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 }

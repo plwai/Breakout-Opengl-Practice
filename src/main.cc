@@ -5,7 +5,7 @@
 #include <thread>
 #include <chrono>
 
-#include "breakout\gameSetting.h"
+#include "breakout\game.h"
 #include "breakout\resourceManager.h"
 
 void keyCallback(GLFWwindow* window, int key, int scanCode, int action, int mode);
@@ -53,7 +53,6 @@ int main(int argc, char *argv[]) {
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		glfwPollEvents();
 
 		double currentTime = glfwGetTime();
 		nbFrames++;
@@ -62,6 +61,8 @@ int main(int argc, char *argv[]) {
 			nbFrames = 0;
 			lastTime += 1.0;
 		}
+
+		glfwPollEvents();
 
 		Breakout.processInput(deltaTime);
 
