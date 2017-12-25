@@ -4,6 +4,7 @@ project (Breakout)
 find_package(OpenGL REQUIRED)
 find_package(GLFW3 3.2 REQUIRED)
 find_package(GLM 0.9.9 REQUIRED)
+find_library(IRRKLANG_LIB NAMES irrKlang HINTS "$ENV{IRRKLANG_ROOT}/lib/Winx64-visualStudio")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -18,6 +19,7 @@ set (ROOT_PATH "${PROJECT_SOURCE_DIR}")
 set (BREAKOUT_SOURCE_PATH "${PROJECT_SOURCE_DIR}/src/breakout")
 set (SHADER_PATH "${PROJECT_SOURCE_DIR}/src/shader")
 set (LEVEL_PATH "${PROJECT_SOURCE_DIR}/src/levels")
+set (IRRKLANG_ROOT "$ENV{IRRKLANG_ROOT}")
 
 # config file
 configure_file ( 
@@ -25,10 +27,20 @@ configure_file (
 	"${PROJECT_BINARY_DIR}/BreakoutConfig.h"
 )
 
+# irrklang dll file
+if(IRRKLANG_LIB)
+	set (irrklang_dll
+		${IRRKLANG_ROOT}/bin/winx64-visualStudio/ikpFlac.dll
+		${IRRKLANG_ROOT}/bin/winx64-visualStudio/ikpMP3.dll
+		${IRRKLANG_ROOT}/bin/winx64-visualStudio/irrKlang.dll
+	)
+	file(COPY ${irrklang_dll} DESTINATION ${CMAKE_BINARY_DIR})
+endif()
+
 set ( source_files
 	src/main.cc
 
-	${BREAKOUT_SOURCE_PATH}/gameSetting.cpp
+	${BREAKOUT_SOURCE_PATH}/game.cpp
 	${BREAKOUT_SOURCE_PATH}/shader.cpp
 	${BREAKOUT_SOURCE_PATH}/texture.cpp
 	${BREAKOUT_SOURCE_PATH}/resourceManager.cpp
@@ -41,12 +53,13 @@ set ( source_files
 )
 
 set ( header_files
-	${BREAKOUT_SOURCE_PATH}/gameSetting.h
+	${BREAKOUT_SOURCE_PATH}/game.h
 	${BREAKOUT_SOURCE_PATH}/shader.h
 	${BREAKOUT_SOURCE_PATH}/texture.h
 	${BREAKOUT_SOURCE_PATH}/resourceManager.h
 	${BREAKOUT_SOURCE_PATH}/spriteRenderer.h
 	${BREAKOUT_SOURCE_PATH}/gameObject.h
+	${BREAKOUT_SOURCE_PATH}/gameLevel.h
 	${BREAKOUT_SOURCE_PATH}/ballObject.h
 	${BREAKOUT_SOURCE_PATH}/particleGenerator.h
 	${BREAKOUT_SOURCE_PATH}/postProcessor.h
@@ -87,9 +100,11 @@ target_include_directories(Breakout PUBLIC "${PROJECT_SOURCE_DIR}/modules/glad/i
 target_include_directories(Breakout PUBLIC "${PROJECT_SOURCE_DIR}/modules/stb")
 target_include_directories(Breakout PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(Breakout PUBLIC ${GLM_INCLUDE_DIR})
+target_include_directories(Breakout PUBLIC "${IRRKLANG_ROOT}/include")
 target_link_libraries(Breakout ${OPENGL_gl_LIBRARY})
 target_link_libraries(Breakout glfw)
 target_link_libraries(Breakout glm)
+target_link_libraries(Breakout ${IRRKLANG_LIB})
 
 install (TARGETS Breakout DESTINATION bin)
 install (FILES "${PROJECT_BINARY_DIR}/BreakoutConfig.h" DESTINATION include)

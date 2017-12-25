@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include <tuple>
 #include <algorithm>
+#include <irrKlang.h>
 
 #include <BreakoutConfig.h>
 
@@ -54,6 +55,7 @@ class Game {
 		void resetPlayer();
 		void spawnPowerUps(GameObject &block);
 		void updatePowerUps(GLfloat dt);
+		void proceedNextLevel();
 
 	private: 
 		SpriteRenderer *Renderer;

@@ -1,10 +1,13 @@
 #include "game.h"
 
+using namespace irrklang;
+
 const glm::vec2 PLAYER_SIZE(100, 20);
 const GLfloat PLAYER_VELOCITY(500.0f);
 const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 const GLfloat BALL_RADIUS = 12.5f;
 GLfloat shakeTime = 0.0f;
+ISoundEngine *SoundEngine = createIrrKlangDevice();
 
 GLboolean shouldSpawn(GLuint chance) {
 	GLuint random = rand() % chance;
@@ -119,6 +122,9 @@ void Game::init() {
 	);
 
 	effects = new PostProcessor(ResourceManager::getShader("effects"), this->width, this->height);
+
+	ResourceManager::loadTexture((this->path + "/assets/texture/powerup_chaos.png").c_str(), GL_TRUE, "texChaos");
+	SoundEngine->play2D((this->path + "/assets/audio/bgm/breakout.mp3").c_str(), GL_TRUE);
 }
 
 void Game::update(GLfloat dt) {
@@ -131,6 +137,7 @@ void Game::update(GLfloat dt) {
 		this->resetLevel();
 		this->resetPlayer();
 		this->powerUps.clear();
+		effects->clear();
 	}
 
 	if (shakeTime > 0.0f) {
@@ -139,7 +146,25 @@ void Game::update(GLfloat dt) {
 			effects->shake = false;
 	}
 
+	if (this->levels[this->level].isCompleted()) {
+		this->proceedNextLevel();
+	}
+
+
+
 	updatePowerUps(dt);
+}
+
+void Game::proceedNextLevel() {
+	if(this->level < this->levels.size())
+		this->setLevel(this->level + 2);
+	else
+		this->setLevel(1);
+
+	this->resetLevel();
+	this->resetPlayer();
+	this->powerUps.clear();
+	effects->clear();
 }
 
 
@@ -209,10 +234,12 @@ void Game::doCollisions() {
 				if (!box.isSolid) {
 					box.destroyed = GL_TRUE;
 					this->spawnPowerUps(box);
+					SoundEngine->play2D((this->path + "/assets/audio/sounds/bleep.mp3").c_str(), GL_FALSE);
 				}
 				else {
 					shakeTime = 0.05f;
 					effects->shake = true;
+					SoundEngine->play2D((this->path + "/assets/audio/sounds/solid.wav").c_str(), GL_FALSE);
 				}
 
 				Direction dir = std::get<1>(collision);
@@ -261,6 +288,7 @@ void Game::doCollisions() {
 		ball->velocity = glm::normalize(ball->velocity) * glm::length(oldVelocity);
 
 		ball->stuck = ball->sticky;
+		SoundEngine->play2D((this->path + "/assets/audio/sounds/bleep.wav").c_str(), GL_FALSE);
 	}
 
 	for (PowerUp &powerUp : this->powerUps) {
@@ -273,6 +301,8 @@ void Game::doCollisions() {
 				activatePowerUp(powerUp);
 				powerUp.destroyed = GL_TRUE;
 				powerUp.activated = GL_TRUE;
+
+				SoundEngine->play2D((this->path + "/assets/audio/sounds/powerup.wav").c_str(), GL_FALSE);
 			}
 		}
 	}

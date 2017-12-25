@@ -18,6 +18,7 @@ class PostProcessor {
 		void beginRender();
 		void endRender();
 		void render(GLfloat time);
+		void clear();
 
 	private:
 		GLuint MSFBO, FBO;

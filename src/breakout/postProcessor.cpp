@@ -107,3 +107,9 @@ void PostProcessor::initRenderData() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
+
+void PostProcessor::clear() {
+	confuse = GL_FALSE;
+	chaos = GL_FALSE; 
+	shake = GL_FALSE;
+}
