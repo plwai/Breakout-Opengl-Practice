@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
 	GLfloat deltaTime = 0.0f;
 	GLfloat lastFrame = 0.0f;
 
-	Breakout.state = GAME_ACTIVE;
+	Breakout.state = GAME_MENU;
 
 	glfwSwapInterval(1);
 
@@ -94,6 +94,7 @@ void keyCallback(GLFWwindow* window, int key, int scanCode, int action, int mode
 		}
 		else if (action == GLFW_RELEASE) {
 			Breakout.keys[key] = GL_FALSE;
+			Breakout.keysProcessed[key] = GL_FALSE;
 		}
 	}
 }

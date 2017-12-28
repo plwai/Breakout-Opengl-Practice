@@ -4,6 +4,7 @@ project (Breakout)
 find_package(OpenGL REQUIRED)
 find_package(GLFW3 3.2 REQUIRED)
 find_package(GLM 0.9.9 REQUIRED)
+find_package(Freetype 2.8.1 REQUIRED)
 find_library(IRRKLANG_LIB NAMES irrKlang HINTS "$ENV{IRRKLANG_ROOT}/lib/Winx64-visualStudio")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -50,6 +51,7 @@ set ( source_files
 	${BREAKOUT_SOURCE_PATH}/ballObject.cpp
 	${BREAKOUT_SOURCE_PATH}/particleGenerator.cpp
 	${BREAKOUT_SOURCE_PATH}/postProcessor.cpp
+	${BREAKOUT_SOURCE_PATH}/textRenderer.cpp
 )
 
 set ( header_files
@@ -64,6 +66,7 @@ set ( header_files
 	${BREAKOUT_SOURCE_PATH}/particleGenerator.h
 	${BREAKOUT_SOURCE_PATH}/postProcessor.h
 	${BREAKOUT_SOURCE_PATH}/powerUp.h
+	${BREAKOUT_SOURCE_PATH}/textRenderer.h
 )
 
 set ( module_source_files
@@ -71,13 +74,15 @@ set ( module_source_files
 )
 
 set ( shader_files
-	${SHADER_PATH}/sprite.vs
-	${SHADER_PATH}/particle.vs
-	${SHADER_PATH}/postProcess.vs
+	${SHADER_PATH}/sprite.vert
+	${SHADER_PATH}/particle.vert
+	${SHADER_PATH}/postProcess.vert
+	${SHADER_PATH}/text.vert
 
 	${SHADER_PATH}/sprite.frag
 	${SHADER_PATH}/particle.frag
 	${SHADER_PATH}/postProcess.frag
+	${SHADER_PATH}/text.frag
 )
 
 set ( level_files
@@ -101,9 +106,11 @@ target_include_directories(Breakout PUBLIC "${PROJECT_SOURCE_DIR}/modules/stb")
 target_include_directories(Breakout PUBLIC ${OPENGL_INCLUDE_DIR})
 target_include_directories(Breakout PUBLIC ${GLM_INCLUDE_DIR})
 target_include_directories(Breakout PUBLIC "${IRRKLANG_ROOT}/include")
+target_include_directories(Breakout PUBLIC "${FREETYPE_INCLUDE_DIRS}")
 target_link_libraries(Breakout ${OPENGL_gl_LIBRARY})
 target_link_libraries(Breakout glfw)
 target_link_libraries(Breakout glm)
+target_link_libraries(Breakout ${FREETYPE_LIBRARIES})
 target_link_libraries(Breakout ${IRRKLANG_LIB})
 
 install (TARGETS Breakout DESTINATION bin)

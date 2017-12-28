@@ -72,9 +72,9 @@ Game::~Game() {
 }
 
 void Game::init() {
-	ResourceManager::loadShader((this->path + "/src/shader/sprite.vs").c_str(), (this->path + "/src/shader/sprite.frag").c_str(), nullptr, "sprite");
-	ResourceManager::loadShader((this->path + "/src/shader/particle.vs").c_str(), (this->path + "/src/shader/particle.frag").c_str(), nullptr, "particle");
-	ResourceManager::loadShader((this->path + "/src/shader/postProcess.vs").c_str(), (this->path + "/src/shader/postProcess.frag").c_str(), nullptr, "effects");
+	ResourceManager::loadShader((this->path + "/src/shader/sprite.vert").c_str(), (this->path + "/src/shader/sprite.frag").c_str(), nullptr, "sprite");
+	ResourceManager::loadShader((this->path + "/src/shader/particle.vert").c_str(), (this->path + "/src/shader/particle.frag").c_str(), nullptr, "particle");
+	ResourceManager::loadShader((this->path + "/src/shader/postProcess.vert").c_str(), (this->path + "/src/shader/postProcess.frag").c_str(), nullptr, "effects");
 
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(this->width), static_cast<GLfloat>(this->height), 0.0f, -1.0f, 1.0f);
 	ResourceManager::getShader("sprite").use().setInteger("image", 0);
@@ -82,9 +82,11 @@ void Game::init() {
 	ResourceManager::getShader("particle").use().setMatrix4("projection", projection);
 
 	Renderer = new SpriteRenderer(ResourceManager::getShader("sprite"));
+	text = new TextRenderer(this->width, this->height);
+	text->load((this->path + "/assets/font/OCRAEXT.TTF").c_str(), 24);
 
 	ResourceManager::loadTexture((this->path + "/assets/texture/paddle.png").c_str(), GL_TRUE, "paddle");
-	ResourceManager::loadTexture((this->path + "/assets/texture/re2_1.jpg").c_str(), GL_FALSE, "background");
+	ResourceManager::loadTexture((this->path + "/assets/texture/background.jpg").c_str(), GL_FALSE, "background");
 	ResourceManager::loadTexture((this->path + "/assets/texture/tennisball512.png").c_str(), GL_TRUE, "face");
 	ResourceManager::loadTexture((this->path + "/assets/texture/block.png").c_str(), GL_FALSE, "block");
 	ResourceManager::loadTexture((this->path + "/assets/texture/block_solid.png").c_str(), GL_FALSE, "block_solid");
@@ -106,6 +108,8 @@ void Game::init() {
 	this->levels.push_back(three);
 	this->levels.push_back(four);
 	this->setLevel(1);
+
+	this->lives = 3;
 
 	glm::vec2 playerPos = glm::vec2(this->width / 2 - PLAYER_SIZE.x / 2, this->height - PLAYER_SIZE.y);
 	player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::getTexture("paddle"));
@@ -134,7 +138,12 @@ void Game::update(GLfloat dt) {
 	particles->update(dt, *ball, 2, glm::vec2(ball->radius / 2));
 
 	if (ball->position.y >= this->height) {
-		this->resetLevel();
+		--this->lives;
+		if (this->lives == 0) {
+			this->resetLevel();
+			this->state = GAME_MENU;
+		}
+		
 		this->resetPlayer();
 		this->powerUps.clear();
 		effects->clear();
@@ -146,27 +155,19 @@ void Game::update(GLfloat dt) {
 			effects->shake = false;
 	}
 
-	if (this->levels[this->level].isCompleted()) {
-		this->proceedNextLevel();
+	if (this->state == GAME_ACTIVE && this->levels[this->level].isCompleted()) {
+		this->resetLevel();
+		this->resetPlayer();
+		this->powerUps.clear();
+		effects->clear();
+		effects->chaos = GL_TRUE;
+		this->state = GAME_WIN;
 	}
 
 
 
 	updatePowerUps(dt);
 }
-
-void Game::proceedNextLevel() {
-	if(this->level < this->levels.size())
-		this->setLevel(this->level + 2);
-	else
-		this->setLevel(1);
-
-	this->resetLevel();
-	this->resetPlayer();
-	this->powerUps.clear();
-	effects->clear();
-}
-
 
 void Game::processInput(GLfloat dt) {
 	if (this->state == GAME_ACTIVE) {
@@ -201,10 +202,39 @@ void Game::processInput(GLfloat dt) {
 			ball->stuck = false;
 		}
 	}
+
+	if (this->state == GAME_MENU) {
+		if (this->keys[GLFW_KEY_ENTER] && !this->keysProcessed[GLFW_KEY_ENTER]) {
+			this->state = GAME_ACTIVE;
+			this->keysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
+		}
+		if (this->keys[GLFW_KEY_W] && !this->keysProcessed[GLFW_KEY_W]) {
+			this->level = (this->level + 1) % 4;
+			this->keysProcessed[GLFW_KEY_W] = GL_TRUE;
+		}
+		if (this->keys[GLFW_KEY_S] && !this->keysProcessed[GLFW_KEY_S]) {
+			if (this->level > 0) {
+				--this->level;
+			}
+			else {
+				this->level = 3;
+			}
+
+			this->keysProcessed[GLFW_KEY_S] = GL_TRUE;
+		}
+	}
+
+	if (this->state == GAME_WIN) {
+		if (this->keys[GLFW_KEY_ENTER]) {
+			this->keysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
+			effects->chaos = GL_FALSE;
+			this->state = GAME_MENU;
+		}
+	}
 }
 
 void Game::render() {
-	if (this->state == GAME_ACTIVE) {
+	if (this->state == GAME_ACTIVE || this->state == GAME_MENU) {
 		effects->beginRender();
 		Renderer->DrawSprite(ResourceManager::getTexture("background"),
 				glm::vec2(0, 0), glm::vec2(this->width, this->height), 0.0f
@@ -222,6 +252,20 @@ void Game::render() {
 		}
 		effects->endRender();
 		effects->render(glfwGetTime());
+
+		std::stringstream ss;
+		ss << this->lives;
+		text->renderText("Lives: " + ss.str(), 5.0f, 5.0f, 1.0f);
+	}
+
+	if (this->state == GAME_MENU) {
+		text->renderText("Press ENTER to start", 250.0f, this->height / 2, 1.0f);
+		text->renderText("Press W or S to select level", 245.0f, this->height / 2 + 20.0f, 0.75f);
+	}
+
+	if (this->state == GAME_WIN) {
+		text->renderText( "You WON!!!", 320.0, this->height / 2 - 20.0, 1.0, glm::vec3(0.0, 1.0, 0.0));
+		text->renderText("Press ENTER to retry or ESC to quit", 130.0, this->height / 2, 1.0, glm::vec3(1.0, 1.0, 0.0));
 	}
 }
 
@@ -396,6 +440,8 @@ void Game::resetLevel()
 		this->levels[2].load((this->path + "/src/levels/level_3.lvl").c_str(), this->width, this->height * 0.5f);
 	else if (this->level == 3)
 		this->levels[3].load((this->path + "/src/levels/level_4.lvl").c_str(), this->width, this->height * 0.5f);
+
+	this->lives = 3;
 }
 
 void Game::resetPlayer()

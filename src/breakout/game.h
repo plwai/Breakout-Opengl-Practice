@@ -1,17 +1,20 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <tuple>
+#include <algorithm>
+#include <sstream>
+
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <GLFW/glfw3.h>
-#include <tuple>
-#include <algorithm>
 #include <irrKlang.h>
 
 #include <BreakoutConfig.h>
 
 #include "spriteRenderer.h"
+#include "textRenderer.h"
 #include "resourceManager.h"
 #include "gameLevel.h"
 #include "ballObject.h"
@@ -39,6 +42,7 @@ class Game {
 		//Game state
 		GameState	state;
 		GLboolean	keys[1024];
+		GLboolean   keysProcessed[1024];
 		GLuint		width, height;
 		std::vector<PowerUp> powerUps;
 		
@@ -55,16 +59,17 @@ class Game {
 		void resetPlayer();
 		void spawnPowerUps(GameObject &block);
 		void updatePowerUps(GLfloat dt);
-		void proceedNextLevel();
 
 	private: 
 		SpriteRenderer *Renderer;
+		TextRenderer *text;
 		std::vector<GameLevel> levels;
 		GLuint level;
 		GameObject *player;
 		BallObject *ball;
 		ParticleGenerator *particles;
 		PostProcessor *effects;
+		GLuint lives;
 		std::string path;
 
 		GLboolean checkCollision(GameObject &firstObj, GameObject &secondObj);
